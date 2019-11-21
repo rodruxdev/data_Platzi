@@ -1,8 +1,8 @@
 from common import config  # Importa la función que creamos en common
+import news_page_objects as news  # Importa news_page_objects y su clase como news
 import argparse  # Importa el parser
 import logging  # Importa logging
 logging.basicConfig(level=logging.INFO)  # Configura el logging como básico, de informacion
-
 
 logger = logging.getLogger(__name__)  # Crea un logger para la terminal
 
@@ -13,6 +13,11 @@ def _news_scraper(news_site_uid):
 
     # Con un formato obtiene la información en host
     logging.info('Beginning scraper for {}'.format(host))
+    # Crea una instancia de HomePage con las llaves del archivo yaml y con los url
+    homepage = news.HomePage(news_site_uid, host)
+
+    for link in homepage.article_links:
+        print(link)  # Obtiene uno a uno los links en homepage
 
 
 if __name__ == '__main__':
