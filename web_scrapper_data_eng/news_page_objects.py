@@ -13,7 +13,7 @@ class HomePage:
         self._queries = self._config['queries']
         self._html = None  # Define como vacia la variable html
 
-        self.visit(url)  # Obtiene el _html con el url que se genera al crear la instancia
+        self._visit(url)  # Obtiene el _html con el url que se genera al crear la instancia
 
     @property
     def article_links(self):  # Define la propiedad
@@ -28,7 +28,7 @@ class HomePage:
     def _select(self, query_string):
         return self._html.select(query_string)  # Obtiene los queries del html
 
-    def visit(self, url):
+    def _visit(self, url):
         response = requests.get(url)  # Guarda en response el url mandado
 
         response.raise_for_status()  # Arroja un error si no hay una conexión correcta con el url
