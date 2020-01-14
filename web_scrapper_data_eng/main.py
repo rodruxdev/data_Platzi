@@ -34,7 +34,7 @@ def _news_scraper(news_site_uid):
             articles.append(article)
             print(article.title)
     # Imprime el largo del articulo
-    print(len(article))
+    print(len(articles))
 
 
 def _fetch_article(news_site_uid, host, link):
