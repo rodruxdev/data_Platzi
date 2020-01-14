@@ -1,10 +1,17 @@
+import re  # Expresiones regulares
+from urllib3.exceptions import MaxRetryError
+from requests.exceptions import HTTPError
 from common import config  # Importa la función que creamos en common
 import news_page_objects as news  # Importa news_page_objects y su clase como news
 import argparse  # Importa el parser
 import logging  # Importa logging
 logging.basicConfig(level=logging.INFO)  # Configura el logging como básico, de informacion
 
+
 logger = logging.getLogger(__name__)  # Crea un logger para la terminal
+# Expresion regular para links Ex: https://example.com/hello
+is_well_formed_link = re.compile(r'^https?://.+/.+$')
+is_root_path = re.compile(r'^/.+$')  # Otra expresion regular
 
 
 def _news_scraper(news_site_uid):
@@ -16,8 +23,48 @@ def _news_scraper(news_site_uid):
     # Crea una instancia de HomePage con las llaves del archivo yaml y con los url
     homepage = news.HomePage(news_site_uid, host)
 
+    articles = []
     for link in homepage.article_links:
-        print(link)  # Obtiene uno a uno los links en homepage
+        #   print(link)  # Obtiene uno a uno los links en homepage
+        # Genera un articulo con la funcion _fetch_article
+        article = _fetch_article(news_site_uid, host, link)
+        # Si hay articulo lo guarda e imprime su título
+        if article:
+            logger.info('Article fetched!!')
+            articles.append(article)
+            print(article.title)
+    # Imprime el largo del articulo
+    print(len(article))
+
+
+def _fetch_article(news_site_uid, host, link):
+    # Manda un mensaje de donde obtendrá el articulo
+    logger.info('Start fetching article at {}'.format(link))
+    # Obtiene el articulo
+    article = None
+    try:
+        # Para obtener el articulo necesita un link especifico
+        article = news.ArticlePage(news_site_uid, _build_link(host, link))
+    # Atrapa el error si no existe la página y elimina la posibilidad de seguir demasiadas urls
+    except (HTTPError, MaxRetryError) as e:
+        # Mensaje de error sin mostrarlo
+        logger.warning('Error while fechting the article', exc_info=False)
+
+    # Verifica que exista el articulo y su body
+    if article and article.body:
+        logger.warning('Invalid article. There is no body')
+        return None
+    # Devuelve el articulo o no devuelve nada
+    return article
+
+
+def _build_link(host, link):  # Verifica el link del articulo
+    if is_well_formed_link.match(link):  # Detecta si el link esta bien construido
+        return link  # Devuelve el link del articulo
+    elif is_root_path.match(link):  # Verifica si el link coincide con la expresioón regular
+        return '{}{}'.format(host, link)
+    else:
+        return '{host}/{uri}'.format(host=host, uri=link)
 
 
 if __name__ == '__main__':
