@@ -4,6 +4,8 @@ from requests.exceptions import HTTPError
 from common import config  # Importa la función que creamos en common
 import news_page_objects as news  # Importa news_page_objects y su clase como news
 import argparse  # Importa el parser
+import datetime  # importa una libreria del tiempo y fechas
+import csv  # importa la libreria para archivos csv
 import logging  # Importa logging
 logging.basicConfig(level=logging.INFO)  # Configura el logging como básico, de informacion
 
@@ -33,8 +35,31 @@ def _news_scraper(news_site_uid):
             logger.info('Article fetched!!')
             articles.append(article)
             print(article.title)
+            break
     # Imprime el largo del articulo
-    print(len(articles))
+    # print(len(articles))
+    _save_articles(news_site_uid, articles)  # Guarda los articulos en formato csv
+
+
+def _save_articles(news_site_uid, articles):
+    # Obtiene la fecha en la que guardamos el archivo
+    now = datetime.datetime.now().strftime('%Y_%m_%d')
+    # Guarda el nombre del archivo csv a crearse
+    out_file_name = '{news_site_uid}_{datetime}_articles.csv'.format(
+        news_site_uid=news_site_uid,
+        datetime=now)
+    # Establece el header del csv sin '_' al inicio del header y es una lista de todos los articulos
+    csv_headers = list(filter(lambda property: not property.startswith('_'), dir(articles[0])))
+
+    with open(out_file_name, mode='w+') as f:
+        # Crea un writer para el archivo
+        writer = csv.writer(f)
+        # Escribe los headers en el archivo
+        writer.writerow(csv_headers)
+        # Escribe por cada articulo una columna de acuerdo a los headers
+        for article in articles:
+            row = [str(getattr(article, prop)) for prop in csv_headers]
+            writer.writerow(row)
 
 
 def _fetch_article(news_site_uid, host, link):
