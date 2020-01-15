@@ -1,6 +1,8 @@
 import re  # Expresiones regulares
 from urllib3.exceptions import MaxRetryError
+from urllib3.exceptions import DecodeError
 from requests.exceptions import HTTPError
+from requests.exceptions import ContentDecodingError
 from common import config  # Importa la función que creamos en common
 import news_page_objects as news  # Importa news_page_objects y su clase como news
 import argparse  # Importa el parser
@@ -35,10 +37,12 @@ def _news_scraper(news_site_uid):
             logger.info('Article fetched!!')
             articles.append(article)
             print(article.title)
-            break
+            if article.title and article.body:
+                print('There is a body')
+                break
     # Imprime el largo del articulo
-    # print(len(articles))
-    _save_articles(news_site_uid, articles)  # Guarda los articulos en formato csv
+    print(len(articles))
+    # _save_articles(news_site_uid, articles)  # Guarda los articulos en formato csv
 
 
 def _save_articles(news_site_uid, articles):
@@ -70,8 +74,9 @@ def _fetch_article(news_site_uid, host, link):
     try:
         # Para obtener el articulo necesita un link especifico
         article = news.ArticlePage(news_site_uid, _build_link(host, link))
+
     # Atrapa el error si no existe la página y elimina la posibilidad de seguir demasiadas urls
-    except (HTTPError, MaxRetryError) as e:
+    except (HTTPError, MaxRetryError, DecodeError, ContentDecodingError) as e:
         # Mensaje de error sin mostrarlo
         logger.warning('Error while fechting the article', exc_info=False)
 
