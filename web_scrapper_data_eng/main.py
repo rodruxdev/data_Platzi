@@ -37,12 +37,11 @@ def _news_scraper(news_site_uid):
             logger.info('Article fetched!!')
             articles.append(article)
             print(article.title)
-            if article.title and article.body:
-                print('There is a body')
+            if article.title:
                 break
     # Imprime el largo del articulo
     print(len(articles))
-    # _save_articles(news_site_uid, articles)  # Guarda los articulos en formato csv
+    _save_articles(news_site_uid, articles)  # Guarda los articulos en formato csv
 
 
 def _save_articles(news_site_uid, articles):
