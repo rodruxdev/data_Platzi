@@ -15,6 +15,7 @@ def main(filename):
     newspaper_uid = _extract_newspaper_uid(filename)  # Extraemos el uid del filename
     df = _add_newspaper_uid_column(df, newspaper_uid)  # Agregamos la columna del uid
     df = _extract_host(df)  # Obtener la columna de los hosts
+    df = _fill_missing_tittles(df)
 
     return df
 
@@ -43,6 +44,21 @@ def _add_newspaper_uid_column(df, newspaper_uid):
 def _extract_host(df):
     logger.info('Extracting host from urls')
     df['host'] = df['url'].apply(lambda url: urlparse(url).netloc)  # Agrega la columna del host
+    return df
+
+
+def _fill_missing_tittles(df):
+    logger.info('Filling missing titles')
+    # Repite lo hecho en jupyter notebooks para obtener los titulos vacios de las urls
+    missing_titles_mask = df['titles'].isna()
+    missing_titles = (df[missing_titles_mask]['url']
+                      .str.extract(r'()?P<missing_titles>[^/]+)$')
+                      .applymap(lambda title: title.split('-'))
+                      .applymap(lambda title_word_list: ' '.join(title_word_list))
+                      )
+    # Une los titulos faltantes con los titulos obtenidos de las urls
+    df.loc[missing_titles_mask, 'title'] = missing_titles.loc[:, 'missing_titles']
+
     return df
 
 
